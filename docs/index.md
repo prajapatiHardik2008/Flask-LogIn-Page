@@ -14,6 +14,7 @@ This guide explains authentication from first principles. Read it in order if yo
 - [CSRF](csrf.md) — protecting state-changing requests
 - [Protected routes](protected-routes.md) — requiring a user
 - [Configuration](configuration.md) — environment variables
+- [Email delivery](email-delivery.md) — send reset links with Brevo
 - [Customization](customization.md) — adapt the kit
 - [Troubleshooting](troubleshooting.md) — common fixes
 - [Deployment](deployment.md) — production considerations

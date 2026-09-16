@@ -5,6 +5,7 @@ from itsdangerous import BadSignature, SignatureExpired, URLSafeTimedSerializer
 from app import bcrypt, db
 from app.forms import ForgotPasswordForm, LoginForm, RegistrationForm, ResetPasswordForm
 from app.models import User
+from app.services.email import send_password_reset_email
 
 
 auth_bp = Blueprint("auth", __name__)
@@ -67,14 +68,21 @@ def logout():
 @auth_bp.route("/forgot-password", methods=["GET", "POST"])
 def forgot_password():
     form = ForgotPasswordForm()
-    reset_url = None
     if form.validate_on_submit():
-        user = User.query.filter_by(email=form.email.data.strip().lower()).first()
+        email = form.email.data.strip().lower()
+        user = User.query.filter_by(email=email).first()
         if user:
-            # In production, send this URL through a trusted email provider. Never log it.
-            reset_url = url_for("auth.reset_password", token=_reset_token(user.email), _external=True)
-        flash("If an account matches that email, reset instructions have been prepared.", "info")
-    return render_template("auth/forgot_password.html", form=form, reset_url=reset_url)
+            token_link = url_for(
+                "auth.reset_password",
+                token=_reset_token(user.email),
+                _external=True,
+            )
+            # Do not include the link in the response or logs. Brevo delivers it.
+            send_password_reset_email(user.email, user.username, token_link)
+        # Keep this response identical for known and unknown addresses.
+        flash("If an account matches that email, reset instructions have been sent.", "info")
+        return redirect(url_for("auth.forgot_password"))
+    return render_template("auth/forgot_password.html", form=form)
 
 
 @auth_bp.route("/reset-password/<token>", methods=["GET", "POST"])

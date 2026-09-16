@@ -18,6 +18,11 @@ class Config:
     PERMANENT_SESSION_LIFETIME = timedelta(days=7)
     PASSWORD_RESET_MAX_AGE = 3600
 
+    # Brevo credentials are read from the environment, never committed to Git.
+    BREVO_API_KEY = os.getenv("BREVO_API_KEY")
+    MAIL_FROM_EMAIL = os.getenv("MAIL_FROM_EMAIL", "noreply@example.com")
+    MAIL_FROM_NAME = os.getenv("MAIL_FROM_NAME", "Flask AuthKit")
+
 
 class DevelopmentConfig(Config):
     DEBUG = True
