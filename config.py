@@ -17,11 +17,14 @@ class Config:
     SESSION_COOKIE_SECURE = os.getenv("SESSION_COOKIE_SECURE", "false").lower() == "true"
     PERMANENT_SESSION_LIFETIME = timedelta(days=7)
     PASSWORD_RESET_MAX_AGE = 3600
+    EMAIL_VERIFICATION_MAX_AGE = 86400
 
-    # Brevo credentials are read from the environment, never committed to Git.
     BREVO_API_KEY = os.getenv("BREVO_API_KEY")
     MAIL_FROM_EMAIL = os.getenv("MAIL_FROM_EMAIL", "noreply@example.com")
     MAIL_FROM_NAME = os.getenv("MAIL_FROM_NAME", "Flask AuthKit")
+    BREVO_PASSWORD_RESET_TEMPLATE_ID = _int_env("BREVO_PASSWORD_RESET_TEMPLATE_ID")
+    BREVO_EMAIL_VERIFICATION_TEMPLATE_ID = _int_env("BREVO_EMAIL_VERIFICATION_TEMPLATE_ID")
+    BREVO_WELCOME_TEMPLATE_ID = _int_env("BREVO_WELCOME_TEMPLATE_ID")
 
 
 class DevelopmentConfig(Config):
@@ -37,3 +40,8 @@ class TestingConfig(Config):
 class ProductionConfig(Config):
     DEBUG = False
     SESSION_COOKIE_SECURE = True
+
+
+def _int_env(name):
+    value = os.getenv(name)
+    return int(value) if value and value.isdigit() else None

@@ -1,26 +1,25 @@
 # Email delivery with Brevo
 
-AuthKit uses Brevo transactional email for password-reset messages. Brevo is an external email delivery service: AuthKit creates a short-lived signed link, and Brevo delivers a styled email containing that link.
+AuthKit now supports three Brevo transactional templates:
 
-## Setup
+- Password reset: `BREVO_PASSWORD_RESET_TEMPLATE_ID`
+- Email verification: `BREVO_EMAIL_VERIFICATION_TEMPLATE_ID`
+- Welcome message: `BREVO_WELCOME_TEMPLATE_ID`
 
-1. Create a Brevo account and generate an API key.
-2. Verify the sender address or domain in Brevo.
-3. Put the API key and verified sender in `.env`:
+Create each template in Brevo, select the verified sender, and use these template variables:
 
-```text
-BREVO_API_KEY=your-brevo-api-key
-MAIL_FROM_EMAIL=noreply@your-domain.example
-MAIL_FROM_NAME=Flask AuthKit
-```
+- All templates: `{{ params.username }}`, `{{ params.app_name }}`
+- Verification: `{{ params.verification_link }}`
+- Password reset: `{{ params.reset_link }}`
 
-4. Install dependencies with `pip install -r requirements.txt`.
-5. Submit the forgot-password form and check the recipient inbox.
+Configure the numeric template IDs in `.env` along with `BREVO_API_KEY`, `MAIL_FROM_EMAIL`, and `MAIL_FROM_NAME`. The application never logs API keys, passwords, or token links.
 
-`app/services/email.py` contains the integration. `send_password_reset_email()` creates a `SendSmtpEmail` object and calls Brevo's `TransactionalEmailsApi`. The route never displays the reset URL or logs the token.
+## Registration flow
 
-## Important details
+1. The user submits the registration form.
+2. AuthKit stores a bcrypt password hash and sets `email_verified` to false.
+3. Brevo sends the verification template and a welcome template.
+4. The user clicks the signed link, which expires after `EMAIL_VERIFICATION_MAX_AGE` seconds (24 hours by default).
+5. The account can sign in only after verification.
 
-The application deliberately shows the same message whether or not an email exists. This prevents account enumeration. The email link expires after `PASSWORD_RESET_MAX_AGE` seconds, which defaults to one hour.
-
-Do not put the Brevo API key in Python code, HTML, JavaScript, or Git. Use environment variables or your deployment platform's secret manager. In production, configure a verified domain and monitor delivery failures.
+The resend page intentionally returns the same message for known and unknown email addresses to reduce account enumeration risk.
